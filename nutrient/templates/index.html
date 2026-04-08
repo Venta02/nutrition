@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVision AI - Smart Meal Analysis with Authentication</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </div>
+
+    <div class="user-menu" id="userMenu">
+        <div class="user-menu-trigger" id="userMenuTrigger">
+            <i class="fas fa-user-circle" id="userIcon"></i>
+            <span id="userDisplayName">Guest</span>
+            <i class="fas fa-chevron-down" id="userMenuChevron"></i>
+        </div>
+        
+        <div class="user-menu-dropdown" id="userMenuDropdown">
+            <div id="guestMenu" class="menu-section">
+                <div class="menu-item" onclick="showAuthModal('login')">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </div>
+                <div class="menu-item" onclick="showAuthModal('register')">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </div>
+            </div>
+            
+            <div id="userAuthMenu" class="menu-section" style="display: none;">
+                <div class="menu-item" onclick="showProfileModal()">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Profile</span>
+                </div>
+                <div class="menu-item" onclick="viewDashboard()">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </div>
+                <hr class="menu-divider">
+                <div class="menu-item" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header fade-in-up">
+            <div class="header-content">
+                <h1><i class="fas fa-brain"></i> NutriVision AI</h1>
+                <p>Advanced Meal Analysis with Smart Nutrition Tracking</p>
+                <div class="status-badge" id="statusBadge">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <span id="statusText">Checking server status...</span>
+                </div>
+            </div>
+        </div>
+        <div id="guestBanner" class="guest-banner" style="display: none;">
+            <div class="guest-banner-content">
+                <div class="guest-banner-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="guest-banner-text">
+                    <h3>Welcome! You have 1 free meal analysis</h3>
+                    <p>Register for unlimited access and nutrition tracking</p>
+                </div>
+                <div class="guest-banner-actions">
+                    <button class="btn btn-primary" onclick="showAuthModal('register')">
+                        <i class="fas fa-user-plus"></i>
+                        Register Free
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="main-grid">
+            <div class="upload-section fade-in-up">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('upload')">
+                        <i class="fas fa-camera"></i> Analyze Meal
+                    </button>
+                    <button class="tab" onclick="switchTab('history')" id="historyTab">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </div>
+
+                <div id="uploadTab" class="tab-content active">
+                    <h2 class="section-title">
+                        <i class="fas fa-camera"></i>
+                        Upload Food Image
+                    </h2>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Drag & drop your food photo</h3>
+                            <p>or click to select from your device</p>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            <button class="btn" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-image"></i>
+                                Choose Food Photo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="imagePreview"></div>
+                </div>
+
+                <div id="historyTab" class="tab-content">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Recent Analyses
+                    </h2>
+                    <div id="historyContent">
+                        <p class="text-center">Loading history...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-panel fade-in-up">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Today's Progress
+                </h2>
+                
+                <div class="progress-grid">
+                    <div class="progress-item">
+                        <div class="progress-circle">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="progress-bg" cx="60" cy="60" r="54"/>
+                                <circle class="progress-fill" cx="60" cy="60" r="54" 
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292" id="caloriesProgress"/>
+                            </svg>
+                            <div class="progress-text" id="caloriesText">0%</div>
+                        </div>
+                        <h4>Calories</h4>
+                        <p id="caloriesDetail">0 / 2000 kcal</p>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-circle">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="progress-bg" cx="60" cy="60" r="54"/>
+                                <circle class="progress-fill" cx="60" cy="60" r="54" 
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292" id="proteinProgress"/>
+                            </svg>
+                            <div class="progress-text" id="proteinText">0%</div>
+                        </div>
+                        <h4>Protein</h4>
+                        <p id="proteinDetail">0 / 50 g</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="todayMeals">0</div>
+                        <div class="stat-label">Meals Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalAnalyses">-</div>
+                        <div class="stat-label">Total Analyses</div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="askNutriBot('How is my progress today?')">
+                        <i class="fas fa-robot"></i>
+                        Ask NutriBot
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loadingDiv">
+            <div class="loading-spinner"></div>
+            <h3><i class="fas fa-brain"></i> AI is analyzing your meal...</h3>
+            <p>Identifying foods and calculating nutrition facts</p>
+        </div>
+
+        <div class="results" id="resultsDiv">
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="authModalOverlay">
+        <div class="modal auth-modal" id="authModal">
+            <div class="modal-header">
+                <h2 id="authModalTitle">Login</h2>
+                <button class="modal-close" onclick="closeAuthModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter your password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </button>
+                    
+                    <div class="auth-switch">
+                        Don't have an account? 
+                        <a href="#" onclick="switchAuthMode('register')">Register here</a>
+                    </div>
+                </form>
+                <form id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerName">Full Name</label>
+                        <input type="text" id="registerName" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail">Email Address</label>
+                        <input type="email" id="registerEmail" required placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" required placeholder="Create a password (min 6 characters)">
+                    </div>
+                    <div class="profile-section">
+                        <h3>Profile Information (Optional)</h3>
+                        <p class="profile-help">Help us personalize your nutrition goals</p>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="registerAge">Age</label>
+                                <input type="number" id="registerAge" min="13" max="120" placeholder="25">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="registerGender">Gender</label>
+                                <select id="registerGender">
+                                    <option value="">Select</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="registerHeight">Height (cm)</label>
+                                <input type="number" id="registerHeight" min="100" max="250" placeholder="170">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="registerWeight">Weight (kg)</label>
+                                <input type="number" id="registerWeight" min="30" max="300" placeholder="70">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registerActivity">Activity Level</label>
+                            <select id="registerActivity">
+                                <option value="sedentary">Sedentary (office job)</option>
+                                <option value="lightly_active">Lightly Active (light exercise 1-3 days/week)</option>
+                                <option value="moderately_active" selected>Moderately Active (exercise 3-5 days/week)</option>
+                                <option value="very_active">Very Active (hard exercise 6-7 days/week)</option>
+                                <option value="extra_active">Extra Active (very hard exercise, physical job)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registerGoal">Fitness Goal</label>
+                            <select id="registerGoal">
+                                <option value="lose_weight">Lose Weight</option>
+                                <option value="maintain_weight" selected>Maintain Weight</option>
+                                <option value="gain_weight">Gain Weight</option>
+                                <option value="build_muscle">Build Muscle</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <i class="fas fa-user-plus"></i>
+                        Create Account
+                    </button>
+                    
+                    <div class="auth-switch">
+                        Already have an account? 
+                        <a href="#" onclick="switchAuthMode('login')">Login here</a>
+                    </div>
+                </form>
+                
+                <div id="authLoading" class="auth-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="profileModalOverlay">
+        <div class="modal profile-modal" id="profileModal">
+            <div class="modal-header">
+                <h2>User Profile</h2>
+                <button class="modal-close" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="profileForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="profileName">Full Name</label>
+                        <input type="text" id="profileName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profileEmail">Email Address</label>
+                        <input type="email" id="profileEmail" readonly>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profileAge">Age</label>
+                            <input type="number" id="profileAge" min="13" max="120">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profileGender">Gender</label>
+                            <select id="profileGender">
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profileHeight">Height (cm)</label>
+                            <input type="number" id="profileHeight" min="100" max="250">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profileWeight">Weight (kg)</label>
+                            <input type="number" id="profileWeight" min="30" max="300">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profileActivity">Activity Level</label>
+                        <select id="profileActivity">
+                            <option value="sedentary">Sedentary (office job)</option>
+                            <option value="lightly_active">Lightly Active (light exercise 1-3 days/week)</option>
+                            <option value="moderately_active">Moderately Active (exercise 3-5 days/week)</option>
+                            <option value="very_active">Very Active (hard exercise 6-7 days/week)</option>
+                            <option value="extra_active">Extra Active (very hard exercise, physical job)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profileGoal">Fitness Goal</label>
+                        <select id="profileGoal">
+                            <option value="lose_weight">Lose Weight</option>
+                            <option value="maintain_weight">Maintain Weight</option>
+                            <option value="gain_weight">Gain Weight</option>
+                            <option value="build_muscle">Build Muscle</option>
+                        </select>
+                    </div>
+                    
+                    <div class="profile-goals">
+                        <h3>Daily Nutrition Goals</h3>
+                        <div class="goals-grid">
+                            <div class="goal-item">
+                                <label>Calories</label>
+                                <span id="profileCalorieGoal">2000</span>
+                            </div>
+                            <div class="goal-item">
+                                <label>Protein</label>
+                                <span id="profileProteinGoal">50g</span>
+                            </div>
+                        </div>
+                        <p class="goals-note">Goals are automatically calculated based on your profile</p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="nutribot-container" id="nutribotContainer">
+        <button class="nutribot-trigger" id="nutribotTrigger">
+            <i class="fas fa-robot" id="triggerIcon"></i>
+            <div class="nutribot-badge" id="nutribotBadge" style="display: none;">1</div>
+        </button>
+
+        <div class="nutribot-window" id="nutribotWindow">
+            <div class="nutribot-header">
+                <div class="nutribot-header-content">
+                    <div class="nutribot-title">
+                        <div class="nutribot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="nutribot-info">
+                            <h3>NutriBot</h3>
+                            <p id="nutribotStatus">Online • Ready to help</p>
+                        </div>
+                    </div>
+                    <button class="nutribot-close" id="nutribotClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="nutribot-messages" id="nutribotMessages">
+            </div>
+
+            <div class="nutribot-input-area">
+                <div class="nutribot-quick-actions" id="nutribotQuickActions">
+                </div>
+                <div class="nutribot-input-container">
+                    <textarea 
+                        class="nutribot-input" 
+                        id="nutribotInput" 
+                        placeholder="Ask me about nutrition, meals, or your progress..."
+                        rows="1"
+                    ></textarea>
+                    <button class="nutribot-send" id="nutribotSend">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

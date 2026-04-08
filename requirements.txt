@@ -1,0 +1,28 @@
+# Core Flask Framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-Limiter==3.5.0
+
+# Authentication & Security
+bcrypt==4.0.1
+PyJWT==2.8.0
+
+# Google AI and Image Processing
+google-generativeai==0.3.1
+Pillow>=9.5.0,<11.0.0
+
+# Environment and Configuration
+python-dotenv==1.0.0
+
+# Utilities
+Werkzeug==2.3.7
+requests==2.31.0
+
+# Optional: Email support (for future email verification)
+# Flask-Mail==0.9.1
+
+# Development Dependencies (optional)
+# pytest==7.4.3
+# pytest-flask==1.3.0
+# black==23.9.1
+# flake8==6.1.0
